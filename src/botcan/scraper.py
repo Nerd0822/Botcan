@@ -71,13 +71,17 @@ class Scraper:
     def run_steps(self, steps):
         for step in steps:
             if not isinstance(step, dict) or len(step) != 1:
-                raise ValueError(f"each step must have exactly one action, got: {step!r}")
-            (action_name, action_args), = step.items()
+                raise ValueError(
+                    f"each step must have exactly one action, got: {step!r}"
+                )
+            ((action_name, action_args),) = step.items()
             self.run_action(action_name, action_args)
 
     def run_action(self, action_name, action_args):
         if self.page is None:
-            raise RuntimeError("browser is not open: add an 'open' step before other actions")
+            raise RuntimeError(
+                "browser is not open: add an 'open' step before other actions"
+            )
 
         match action_name:
             case "click":
@@ -93,11 +97,15 @@ class Scraper:
             case "press":
                 self.page.locator(action_args["selector"]).press(action_args["key"])
             case "select":
-                self.page.locator(action_args["selector"]).select_option(action_args["value"])
+                self.page.locator(action_args["selector"]).select_option(
+                    action_args["value"]
+                )
             case "hover":
                 self.page.locator(action_args["selector"]).hover()
             case "copy_link":
-                link_url = self.page.locator(action_args["selector"]).get_attribute("href")
+                link_url = self.page.locator(action_args["selector"]).get_attribute(
+                    "href"
+                )
                 self.extracted_data[action_args["key"]] = link_url
             case "wait":
                 self.page.wait_for_selector(

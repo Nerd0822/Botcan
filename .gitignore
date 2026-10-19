@@ -7,3 +7,6 @@ __pycache__/
 
 # runtime output (extracts, screenshots, downloads)
 output/
+
+# build artifacts
+dist/

@@ -7,10 +7,33 @@ disposable browser profile.
 ## Quick start (dev)
 
 ```sh
-uv run python run.py                       # runs src/demo/demo.yaml (local demo page on :5500)
+uv run python run.py src/demo/demo.yaml    # demo recipe (local demo page on :5500)
 ```
 
 Output files land in `./output` relative to where you run it.
+
+## Install on other machines
+
+From this GitHub repo directly — no registry needed:
+
+```sh
+uv tool install git+https://github.com/Nerd0822/Botcan.git     # botcan CLI + botcan-mcp on PATH
+uv add "botcan @ git+https://github.com/Nerd0822/Botcan.git"    # as a dependency in a project
+```
+
+Pin a released tag if you want immutable installs (`@v0.1.0` instead of latest commit).
+Then one-time per machine, fetch the browser:
+
+```sh
+uvx playwright install firefox
+```
+
+Use it:
+
+```sh
+botcan my_recipe.yaml my_output_dir     # prints extracted_data JSON; downloads/screenshots land in the output dir
+botcan-mcp                              # the MCP server (register it in your AI app, see below)
+```
 
 ## Recipe format
 
