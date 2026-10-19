@@ -76,3 +76,12 @@ OpenCode through its `~/.claude/skills` compatibility scan. One file, both apps.
 
 This repo ships the same file at `skills/botcan/SKILL.md` — install it by copying
 (or symlinking) that directory into `~/.claude/skills/botcan/`.
+
+For claude.ai: skills are uploaded as a ZIP in Settings → Skills. Build it with:
+
+```sh
+zip -r botcan-skill.zip skills/botcan
+```
+
+The skill only *writes* recipes there — running them needs the MCP server locally
+(see the setup steps above), since a cloud sandbox can't drive your browser.
