@@ -1,0 +1,89 @@
+open: http://127.0.0.1:5500/Projects_/Botcan/src/demo/demo.html
+steps:
+  # --- basic interactions ---
+  - click:
+      selector: "#click-target"
+  - click:
+      selector: "#click-target"
+  - check:
+      selector: "#check-target"
+  - uncheck:
+      selector: "#terms-target"
+  - check:
+      selector: "#radio-two"
+
+  # --- text inputs ---
+  - clear:
+      selector: "#clear-target"
+  - fill:
+      selector: "#fill-target"
+      value: "Nishant"
+  - fill:
+      selector: "#textarea-target"
+      value: "Line one of the test"
+  - fill:
+      selector: "#press-target"
+      value: "hello botcan"
+  - press:
+      selector: "#press-target"
+      key: "Enter"
+
+  # --- select, hover, copy_link ---
+  - select:
+      selector: "#select-target"
+      value: "scraping"
+  - hover:
+      selector: "#hover-target"
+  - copy_link:
+      selector: "#copy-link-target"
+      key: "internal_link"
+
+  # --- localStorage note (the demo's own "save" card) ---
+  - fill:
+      selector: "#save-target"
+      value: "scraped result 123"
+  - click:
+      selector: "#save-button"
+  - click:
+      selector: "#load-button"
+
+  # --- extract ---
+  - extract:
+      selector: "#product-name"
+      first: true
+  - extract:
+      selector: "#product-price"
+      first: true
+  - extract:
+      selector: "#products-table tbody tr td:nth-child(2)"
+      all: true
+
+  # --- wait for the delayed content, then read it ---
+  - click:
+      selector: "#wait-button"
+  - wait:
+      selector: "#wait-result:has-text('DYNAMIC_CONTENT_READY')"
+      timeout: 5000
+  - extract:
+      selector: "#wait-result"
+      first: true
+
+  # --- scroll, then read the bottom message ---
+  - scroll:
+      selector: "#bottom-target"
+  - extract:
+      selector: "#bottom-message"
+      first: true
+
+  # --- files go to the output folder ---
+  - download:
+      selector: "#download-target"
+      path: "webscrape-test.txt"
+  - screenshot:
+      path: "demo.png"
+      full_page: true
+  - save:
+      path: "demo_result.json"
+      format: json
+
+close:

@@ -1,0 +1,22 @@
+[project]
+name = "botcan"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Nerd0822", email = "Nerd0822@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1,<2",
+    "playwright>=1.64.0",
+    "pyyaml>=6.0.3",
+]
+
+[project.scripts]
+botcan = "botcan:main"
+botcan-mcp = "botcan.server:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"

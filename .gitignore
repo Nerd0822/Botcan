@@ -1,0 +1,9 @@
+# environment
+.venv/
+
+# python artifacts
+__pycache__/
+*.pyc
+
+# runtime output (extracts, screenshots, downloads)
+output/

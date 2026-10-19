@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Scraping Action Test Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #64748b;
+      --line: #dbe3ee;
+      --panel: #ffffff;
+      --canvas: #f3f6fb;
+      --accent: #3659d9;
+      --accent-dark: #2543b5;
+      --good: #147d55;
+      --warn: #9a5b05;
+      --shadow: 0 10px 28px rgba(22, 34, 63, .07);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    button, input, select, textarea { font: inherit; }
+    button, .button-link {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 9px 13px; border: 1px solid var(--accent); border-radius: 9px;
+      color: #fff; background: var(--accent); cursor: pointer; text-decoration: none;
+      transition: background .15s ease, transform .15s ease;
+    }
+    button:hover, .button-link:hover { background: var(--accent-dark); }
+    button:active { transform: translateY(1px); }
+    button.secondary { color: var(--ink); background: #fff; border-color: var(--line); }
+    button.secondary:hover { background: #f8fafc; }
+    input[type="text"], input[type="email"], input[type="search"], textarea, select {
+      width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #cbd5e1;
+      border-radius: 8px; background: #fff; color: var(--ink); outline: none;
+    }
+    input:focus, textarea:focus, select:focus, button:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(54, 89, 217, .22); outline-offset: 2px;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    label { display: block; margin-bottom: 6px; font-weight: 650; }
+    .topbar { background: #101a32; color: #fff; padding: 13px 20px; }
+    .topbar-inner, main { max-width: 1120px; margin: 0 auto; }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { font-weight: 800; letter-spacing: .02em; }
+    .topbar nav { display: flex; flex-wrap: wrap; gap: 15px; }
+    .topbar a { color: #e4eaff; font-size: 13px; text-decoration: none; }
+    main { padding: 30px 20px 70px; }
+    .hero { padding: 25px; border-radius: 18px; background: linear-gradient(135deg, #17264b, #344fa4); color: #fff; box-shadow: var(--shadow); }
+    .eyebrow { margin: 0 0 7px; color: #c7d5ff; font-size: 12px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.035em; line-height: 1.1; }
+    .hero p { max-width: 760px; color: #e0e7ff; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+    .pill { padding: 4px 9px; border: 1px solid rgba(255,255,255,.25); border-radius: 100px; font-size: 12px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 30px 0 13px; }
+    h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+    h3 { margin: 0 0 9px; font-size: 16px; }
+    .subtext { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card { min-width: 0; padding: 19px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: var(--shadow); }
+    .card p { margin: 8px 0 12px; }
+    .action-tag { display: inline-block; margin-bottom: 8px; padding: 3px 7px; border-radius: 6px; background: #edf1ff; color: #2945ad; font: 700 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .control-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .control-row > * { flex: 0 0 auto; }
+    .field { margin: 12px 0; }
+    .field small, .hint { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .inline-check { display: flex; align-items: center; gap: 9px; margin: 8px 0; }
+    .inline-check label { margin: 0; font-weight: 500; }
+    input[type="checkbox"], input[type="radio"] { width: 17px; height: 17px; accent-color: var(--accent); }
+    .status { min-height: 22px; color: var(--good); font-size: 13px; font-weight: 650; }
+    .code { padding: 2px 5px; border-radius: 5px; background: #edf1f7; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .target-box { padding: 14px; border: 1px dashed #9baee7; border-radius: 10px; background: #f5f7ff; }
+    .hover-target { transition: background .2s ease, transform .2s ease, border-color .2s ease; }
+    .hover-target:hover { transform: translateY(-2px); border-color: #6d84ec; background: #e7edff; }
+    .result-box { min-height: 55px; padding: 11px; border-radius: 8px; background: #f1f5f9; overflow-wrap: anywhere; }
+    .metric { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #edf0f5; }
+    .metric:last-child { border-bottom: 0; }
+    .metric strong { font-variant-numeric: tabular-nums; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--line); }
+    th { background: #f8fafc; }
+    .log { max-height: 230px; overflow: auto; padding: 10px 12px; border-radius: 9px; background: #101a32; color: #dbe7ff; font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .log div { overflow-wrap: anywhere; }
+    .log .time { color: #91a6d8; }
+    .wide { grid-column: 1 / -1; }
+    .spacer-section { min-height: 210px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 25px; }
+    footer { margin-top: 30px; color: var(--muted); font-size: 12px; text-align: center; }
+    @media (max-width: 720px) {
+      .grid { grid-template-columns: 1fr; }
+      .wide { grid-column: auto; }
+      .topbar-inner { align-items: flex-start; flex-direction: column; }
+      main { padding: 20px 13px 50px; }
+      .hero { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">WebScrape Lab <span style="color:#9eb3ff">/ DEMO</span></div>
+      <nav aria-label="Page navigation">
+        <a href="#controls">Controls</a>
+        <a href="#data">Extract data</a>
+        <a href="#wait-scroll">Wait & scroll</a>
+        <a href="#action-log">Action log</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <p class="eyebrow">Automation playground</p>
+      <h1>Web scraping action test lab</h1>
+      <p>Use this page to test browser automation and scraping actions against stable IDs, labels, links, native controls, downloadable content, and dynamically rendered text. It runs locally and does not require an API or external library.</p>
+      <div class="pill-row" id="action-pills" aria-label="Supported actions"></div>
+    </section>
+
+    <div class="section-heading" id="controls">
+      <div><h2>1. Interaction controls</h2><p class="subtext">Inputs and buttons for actions that change page state.</p></div>
+    </div>
+
+    <section class="grid" aria-label="Action test controls">
+      <article class="card" id="click-card">
+        <span class="action-tag">click</span>
+        <h3>Click a button</h3>
+        <p>Click the button and verify that the counter updates.</p>
+        <div class="control-row"><button id="click-target" type="button">Click test</button><span>Count: <strong id="click-count">0</strong></span></div>
+        <p class="status" id="click-status" aria-live="polite"></p>
+      </article>
+
+      <article class="card" id="check-card">
+        <span class="action-tag">check / uncheck</span>
+        <h3>Checkboxes and radio buttons</h3>
+        <div class="inline-check"><input id="check-target" type="checkbox"><label for="check-target">Check or uncheck this box</label></div>
+        <div class="inline-check"><input id="terms-target" type="checkbox" checked><label for="terms-target">This checkbox starts checked</label></div>
+        <div class="inline-check"><input id="radio-one" type="radio" name="radio-test" value="alpha"><label for="radio-one">Alpha</label></div>
+        <div class="inline-check"><input id="radio-two" type="radio" name="radio-test" value="beta"><label for="radio-two">Beta</label></div>
+        <p class="status" id="check-status" aria-live="polite"></p>
+      </article>
+
+      <article class="card" id="clear-card">
+        <span class="action-tag">clear / fill</span>
+        <h3>Text inputs</h3>
+        <div class="field"><label for="clear-target">Clear this input</label><input id="clear-target" type="text" value="Remove this starter text"></div>
+        <div class="field"><label for="fill-target">Fill this input</label><input id="fill-target" type="text" placeholder="Type a name or test value"></div>
+        <div class="field"><label for="textarea-target">Fill this text area</label><textarea id="textarea-target" placeholder="Enter multiple lines here"></textarea></div>
+        <p class="status" id="input-status" aria-live="polite"></p>
+      </article>
+
+      <article class="card" id="press-card">
+        <span class="action-tag">press</span>
+        <h3>Keyboard press test</h3>
+        <p>Type a value and press <span class="code">Enter</span>. Other key presses are recorded too.</p>
+        <div class="field"><label for="press-target">Keyboard input</label><input id="press-target" type="text" placeholder="Type here, then press Enter"></div>
+        <div class="result-box" id="press-result" aria-live="polite">Last key: none</div>
+      </article>
+
+      <article class="card" id="select-card">
+        <span class="action-tag">select</span>
+        <h3>Select options</h3>
+        <div class="field"><label for="select-target">Choose a category</label><select id="select-target"><option value="">-- Choose one --</option><option value="python">Python</option><option value="django">Django</option><option value="scraping">Web scraping</option><option value="machine-learning">Machine learning</option></select></div>
+        <div class="field"><label for="multi-select-target">Choose multiple technologies (Ctrl/Cmd-click)</label><select id="multi-select-target" multiple size="4"><option value="beautifulsoup">Beautiful Soup</option><option value="playwright">Playwright</option><option value="selenium">Selenium</option><option value="requests">Requests</option></select></div>
+        <p class="status" id="select-status" aria-live="polite"></p>
+      </article>
+
+      <article class="card" id="hover-card">
+        <span class="action-tag">hover</span>
+        <h3>Hover target</h3>
+        <p>Move the pointer over the target. Its background and border change on hover.</p>
+        <div class="target-box hover-target" id="hover-target" title="Hover tooltip for automation testing" data-hover-message="Pointer is over the hover target.">Hover over this box</div>
+        <p class="status" id="hover-status" aria-live="polite">Not hovered yet</p>
+      </article>
+
+      <article class="card" id="copy-card">
+        <span class="action-tag">copy_link</span>
+        <h3>Copy a link</h3>
+        <p>Use the link's <span class="code">href</span> or activate the copy button to put its URL on the clipboard.</p>
+        <p><a id="copy-link-target" href="#data">Jump to the extract-data section</a></p>
+        <div class="control-row"><button class="secondary" type="button" id="copy-link-button">Copy link URL</button></div>
+        <p class="status" id="copy-status" aria-live="polite"></p>
+      </article>
+
+      <article class="card" id="download-card">
+        <span class="action-tag">download</span>
+        <h3>Download a local test file</h3>
+        <p>The link downloads a small text file generated in this page.</p>
+        <a class="button-link" id="download-target" href="data:text/plain;charset=utf-8,WebScrape%20Lab%20download%20test%0AStatus%3A%20success%0A" download="webscrape-test.txt">Download test.txt</a>
+        <p class="status" id="download-status" aria-live="polite">Expected filename: webscrape-test.txt</p>
+      </article>
+
+      <article class="card" id="save-card">
+        <span class="action-tag">save</span>
+        <h3>Save and reload a value</h3>
+        <p>Save a note to this browser's local storage, then reload the page to test persistence.</p>
+        <div class="field"><label for="save-target">Note to save</label><input id="save-target" type="text" placeholder="Example: scraped result 123"></div>
+        <div class="control-row"><button id="save-button" type="button">Save note</button><button id="load-button" class="secondary" type="button">Load saved note</button></div>
+        <p class="status" id="save-status" aria-live="polite"></p>
+      </article>
+
+      <article class="card" id="screenshot-card">
+        <span class="action-tag">screenshot</span>
+        <h3>Screenshot target</h3>
+        <p>Capture this element or the viewport with your browser automation tool.</p>
+        <div class="target-box" id="screenshot-target">
+          <strong>Screenshot fixture</strong>
+          <div class="metric"><span>Fixture ID</span><strong>SCR-2048</strong></div>
+          <div class="metric"><span>State</span><strong>Ready</strong></div>
+          <div class="metric"><span>Visible text</span><strong>Capture this card</strong></div>
+        </div>
+      </article>
+
+      <article class="card" id="extract-card">
+        <span class="action-tag">extract</span>
+        <h3>Structured extraction fixture</h3>
+        <p>Stable text and attributes intended for selectors, text extraction, and link collection.</p>
+        <div class="metric"><span>Product</span><strong id="product-name">Mechanical Keyboard K2</strong></div>
+        <div class="metric"><span>Price</span><strong id="product-price" data-price="79.50">$79.50</strong></div>
+        <div class="metric"><span>Availability</span><strong id="product-stock">In stock</strong></div>
+        <div class="metric"><span>SKU</span><strong id="product-sku">KB-K2-079</strong></div>
+        <p><a href="#top" id="extract-link">Example internal link</a></p>
+      </article>
+    </section>
+
+    <div class="section-heading" id="data">
+      <div><h2>2. Data extraction table</h2><p class="subtext">Use this for row selectors, headers, attributes, and repeated elements.</p></div>
+    </div>
+    <section class="card table-wrap" aria-label="Sample products table">
+      <table id="products-table">
+        <thead><tr><th scope="col">ID</th><th scope="col">Name</th><th scope="col">Category</th><th scope="col">Price</th><th scope="col">In stock</th></tr></thead>
+        <tbody>
+          <tr data-item-id="P-101"><td>P-101</td><td>Mechanical Keyboard K2</td><td>Accessories</td><td data-value="79.50">$79.50</td><td>Yes</td></tr>
+          <tr data-item-id="P-102"><td>P-102</td><td>USB-C Hub 7-in-1</td><td>Adapters</td><td data-value="34.99">$34.99</td><td>Yes</td></tr>
+          <tr data-item-id="P-103"><td>P-103</td><td>1080p Webcam</td><td>Video</td><td data-value="49.00">$49.00</td><td>No</td></tr>
+          <tr data-item-id="P-104"><td>P-104</td><td>Wireless Mouse M3</td><td>Accessories</td><td data-value="24.95">$24.95</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="section-heading" id="wait-scroll">
+      <div><h2>3. Wait and scroll tests</h2><p class="subtext">Dynamic content and lower-page targets for scrolling.</p></div>
+    </div>
+    <section class="grid">
+      <article class="card" id="wait-card">
+        <span class="action-tag">wait</span>
+        <h3>Wait for dynamic content</h3>
+        <p>Click the button to schedule an element to appear after 1.5 seconds. A scraper can wait for the text or for the element to become visible.</p>
+        <button id="wait-button" type="button">Start delayed load</button>
+        <div id="wait-result" class="result-box" style="margin-top:12px" aria-live="polite">Dynamic content has not loaded.</div>
+      </article>
+      <article class="card" id="scroll-card">
+        <span class="action-tag">scroll</span>
+        <h3>Scroll to a target</h3>
+        <p>Scroll down to the bottom target, or use the button for a controlled jump.</p>
+        <button id="scroll-button" type="button">Scroll to bottom target</button>
+        <p class="hint">Target ID: <span class="code">bottom-target</span></p>
+      </article>
+      <article class="spacer-section wide" aria-label="Scroll destination" id="bottom-target">
+        <span class="action-tag">scroll destination</span>
+        <h3>You reached the bottom target</h3>
+        <p>This section is deliberately lower on the page. Test scrolling, locating an element after scrolling, and extracting its text.</p>
+        <div class="result-box" id="bottom-message">BOTTOM_TARGET_REACHED — extraction fixture complete.</div>
+        <a href="#top">Back to top</a>
+      </article>
+    </section>
+
+    <div class="section-heading" id="action-log">
+      <div><h2>4. Action log</h2><p class="subtext">The page logs its own demo interactions. Your scraper can independently inspect the DOM.</p></div>
+      <button class="secondary" id="clear-log-button" type="button">Clear log</button>
+    </div>
+    <section class="card">
+      <div class="control-row" style="justify-content:space-between; margin-bottom:12px">
+        <span class="subtext">Known action names are also exposed as <span class="code">window.ACTIONS</span>.</span>
+        <button class="secondary" id="show-actions-button" type="button">Show ACTIONS array</button>
+      </div>
+      <div class="log" id="log-target" role="log" aria-live="polite"><div><span class="time">[ready]</span> Page initialized. Try any action target above.</div></div>
+    </section>
+
+    <footer>WebScrape Lab · Local demo page · No external dependencies</footer>
+  </main>
+
+  <script>
+    // Action names matching the requested automation vocabulary.
+    const ACTIONS = [
+      "click", "check", "uncheck", "clear", "press", "copy_link", "download",
+      "extract", "fill", "screenshot", "save", "select", "hover", "wait", "scroll"
+    ];
+    window.ACTIONS = ACTIONS;
+
+    const $ = (selector) => document.querySelector(selector);
+    const logTarget = $("#log-target");
+    function log(message) {
+      const line = document.createElement("div");
+      const time = new Date().toLocaleTimeString();
+      const stamp = document.createElement("span");
+      stamp.className = "time";
+      stamp.textContent = `[${time}] `;
+      line.append(stamp, document.createTextNode(message));
+      logTarget.appendChild(line);
+      logTarget.scrollTop = logTarget.scrollHeight;
+    }
+    function setStatus(selector, message) {
+      $(selector).textContent = message;
+      log(message);
+    }
+
+    // Render the supported action list as visible page content.
+    ACTIONS.forEach((action) => {
+      const pill = document.createElement("span");
+      pill.className = "pill";
+      pill.textContent = action;
+      $("#action-pills").appendChild(pill);
+    });
+
+    let clickCount = 0;
+    $("#click-target").addEventListener("click", () => {
+      clickCount += 1;
+      $("#click-count").textContent = String(clickCount);
+      setStatus("#click-status", `Click registered. Count = ${clickCount}.`);
+    });
+
+    ["#check-target", "#terms-target", "#radio-one", "#radio-two"].forEach((selector) => {
+      $(selector).addEventListener("change", (event) => {
+        const el = event.currentTarget;
+        const value = el.type === "radio" ? (el.checked ? el.value : "not selected") : (el.checked ? "checked" : "unchecked");
+        setStatus("#check-status", `${el.id}: ${value}`);
+      });
+    });
+
+    ["#clear-target", "#fill-target", "#textarea-target"].forEach((selector) => {
+      $(selector).addEventListener("input", (event) => {
+        setStatus("#input-status", `${event.currentTarget.id} updated (${event.currentTarget.value.length} characters).`);
+      });
+    });
+
+    $("#press-target").addEventListener("keydown", (event) => {
+      $("#press-result").textContent = `Last key: ${event.key}${event.key === "Enter" ? ` — submitted value: ${event.currentTarget.value}` : ""}`;
+      log(`press test: key=${event.key}`);
+      if (event.key === "Enter") {
+        event.preventDefault();
+        setStatus("#press-result", `Enter pressed — submitted value: ${event.currentTarget.value || "(empty)"}`);
+      }
+    });
+
+    ["#select-target", "#multi-select-target"].forEach((selector) => {
+      $(selector).addEventListener("change", (event) => {
+        const selected = Array.from(event.currentTarget.selectedOptions).map((option) => option.value);
+        setStatus("#select-status", `${event.currentTarget.id}: ${selected.join(", ") || "no selection"}`);
+      });
+    });
+
+    const hoverTarget = $("#hover-target");
+    hoverTarget.addEventListener("mouseenter", () => setStatus("#hover-status", hoverTarget.dataset.hoverMessage));
+    hoverTarget.addEventListener("mouseleave", () => {
+      $("#hover-status").textContent = "Pointer left the target.";
+      log("hover test: pointer left target");
+    });
+
+    $("#copy-link-button").addEventListener("click", async () => {
+      const url = $("#copy-link-target").href;
+      try {
+        await navigator.clipboard.writeText(url);
+        setStatus("#copy-status", `Copied URL: ${url}`);
+      } catch (error) {
+        // Clipboard access may be unavailable on file:// pages. Expose the URL for manual inspection.
+        $("#copy-status").textContent = `Clipboard unavailable here. Link URL: ${url}`;
+        log(`copy_link fallback: ${url}`);
+      }
+    });
+
+    $("#download-target").addEventListener("click", () => log("download action initiated for webscrape-test.txt"));
+
+    $("#save-button").addEventListener("click", () => {
+      try {
+        localStorage.setItem("webscrapeLabSavedNote", $("#save-target").value);
+        setStatus("#save-status", "Saved note to local storage.");
+      } catch (error) {
+        setStatus("#save-status", "Local storage is unavailable in this browser context.");
+      }
+    });
+    $("#load-button").addEventListener("click", () => {
+      try {
+        const saved = localStorage.getItem("webscrapeLabSavedNote");
+        if (saved === null) {
+          setStatus("#save-status", "No saved note found.");
+        } else {
+          $("#save-target").value = saved;
+          setStatus("#save-status", `Loaded saved note (${saved.length} characters).`);
+        }
+      } catch (error) {
+        setStatus("#save-status", "Local storage is unavailable in this browser context.");
+      }
+    });
+
+    let waitTimer;
+    $("#wait-button").addEventListener("click", () => {
+      clearTimeout(waitTimer);
+      $("#wait-result").textContent = "Loading...";
+      log("wait test: dynamic content scheduled for 1500 ms");
+      waitTimer = setTimeout(() => {
+        $("#wait-result").textContent = "DYNAMIC_CONTENT_READY — delayed text loaded successfully.";
+        log("wait test: dynamic content is ready");
+      }, 1500);
+    });
+
+    $("#scroll-button").addEventListener("click", () => {
+      $("#bottom-target").scrollIntoView({ behavior: "smooth", block: "start" });
+      log("scroll test: scrolling to #bottom-target");
+    });
+
+    $("#show-actions-button").addEventListener("click", () => {
+      log(`ACTIONS = ${JSON.stringify(window.ACTIONS)}`);
+    });
+    $("#clear-log-button").addEventListener("click", () => {
+      logTarget.replaceChildren();
+      log("Log cleared.");
+    });
+
+    // Log ordinary clicks on marked test controls, without interfering with their behavior.
+    document.querySelectorAll("button, a").forEach((element) => {
+      if (!["click-target", "copy-link-button", "download-target", "save-button", "load-button", "wait-button", "scroll-button", "show-actions-button", "clear-log-button"].includes(element.id)) {
+        element.addEventListener("click", () => log(`click: ${element.id || element.textContent.trim().slice(0, 50)}`));
+      }
+    });
+  </script>
+</body>
+</html>
