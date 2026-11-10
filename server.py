@@ -1,12 +1,10 @@
 import asyncio
-import json
 import tempfile
 from pathlib import Path
 
+import orjson
 from mcp.server.fastmcp import FastMCP
-
-from .scraper import Scraper
-
+from scraper import RecipeError, Scraper
 
 mcp = FastMCP(
     "botcan",
@@ -21,17 +19,16 @@ mcp = FastMCP(
 
 
 def _result_payload(extracted_data, error):
-    return json.dumps(
-        {"extracted_data": extracted_data, "error": error}, ensure_ascii=False
-    )
+    return orjson.dumps({"extracted_data": extracted_data, "error": error}).decode()
 
 
 def _run_recipe_file(file_path, output_dir=None):
-    scraper = Scraper(output_dir=output_dir, headless=True)
+    scraper = Scraper(HEADLESS=True, output_dir=output_dir or "output")
+    error = None
     try:
-        error = scraper.read_recipe(file_path)
-    finally:
-        scraper.close()
+        scraper.execute_recipe(file_path)
+    except (RecipeError, OSError) as recipe_error:
+        error = f"{type(recipe_error).__name__}: {recipe_error}"
     return _result_payload(scraper.extracted_data, error)
 
 
@@ -44,11 +41,13 @@ async def play_recipe(recipe_path: str, output_dir: str | None = None) -> str:
 def _run_inline_recipe(recipe_yaml, output_dir=None):
     temp_path = None
     try:
-        with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as recipe_file:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".yaml", delete=False
+        ) as recipe_file:
             recipe_file.write(recipe_yaml)
             temp_path = recipe_file.name
         return _run_recipe_file(temp_path, output_dir)
-    except Exception as recipe_error:
+    except (OSError, RecipeError) as recipe_error:
         return _result_payload({}, f"{type(recipe_error).__name__}: {recipe_error}")
     finally:
         if temp_path is not None:
@@ -63,3 +62,7 @@ async def play_steps(recipe_yaml: str, output_dir: str | None = None) -> str:
 
 def main():
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

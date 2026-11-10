@@ -10,3 +10,7 @@ output/
 
 # build artifacts
 dist/
+
+# tooling / skill bundles
+.ruff_cache/
+*.zip

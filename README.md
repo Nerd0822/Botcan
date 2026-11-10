@@ -1,39 +1,32 @@
 # botcan
 
 YAML-driven browser automation and scraping. Write a recipe, run it, get extracted data
-plus downloaded files. Runs headless Firefox through Playwright; every run uses a fresh
-disposable browser profile.
+plus downloaded files. Runs Firefox through Playwright; every run uses a fresh disposable
+browser profile.
 
-## Quick start (dev)
+## Setup
 
-```sh
-uv run python run.py src/demo/demo.yaml    # demo recipe (local demo page on :5500)
-```
-
-Output files land in `./output` relative to where you run it.
-
-## Install on other machines
-
-From this GitHub repo directly — no registry needed:
+Requires [uv](https://docs.astral.sh/uv/).
 
 ```sh
-uv tool install git+https://github.com/Nerd0822/Botcan.git     # botcan CLI + botcan-mcp on PATH
-uv add "botcan @ git+https://github.com/Nerd0822/Botcan.git"    # as a dependency in a project
+uv sync
+uvx playwright install firefox     # one-time per machine
 ```
 
-Pin a released tag if you want immutable installs (`@v0.1.0` instead of latest commit).
-Then one-time per machine, fetch the browser:
+## Run a recipe
 
 ```sh
-uvx playwright install firefox
+uv run python main.py                       # demo recipe, visible browser
+uv run python main.py my_recipe.yaml        # any recipe
+uv run python main.py my_recipe.yaml ./out  # custom output dir (default: ./output)
 ```
 
-Use it:
+Extracted data is printed as JSON. `download`, `screenshot`, and `save` steps write into
+the output dir. On failure the CLI prints `botcan: StepError: ...` and exits 1.
 
-```sh
-botcan my_recipe.yaml my_output_dir     # prints extracted_data JSON; downloads/screenshots land in the output dir
-botcan-mcp                              # the MCP server (register it in your AI app, see below)
-```
+The demo recipe points at `http://127.0.0.1:5500/Projects_/Botcan/demo/demo.html`; serve
+the repo's parent directory on port 5500 (VS Code Live Server does this by default) or
+adjust the `open:` URL to wherever `demo/demo.html` is served.
 
 ## Recipe format
 
@@ -57,54 +50,78 @@ Actions and required args: `click(selector)`, `check(selector)`, `uncheck(select
 `clear(selector)`, `fill(selector, value)`, `press(selector, key)`, `select(selector, value)`,
 `hover(selector)`, `scroll(selector)`, `wait(selector, timeout?)`, `copy_link(selector, key)`,
 `extract(selector, first?|all?)`, `download(selector, path)`, `screenshot(path, full_page?)`,
-`save(path, format)`. Unknown actions return a listed error instead of crashing.
+`save(path, format)`.
 
-`headless` lives in `src/botcan/config.py` (`HEADLESS = False` is handy while developing:
-you can watch the browser; the MCP server always runs headless regardless).
+`extract` and `copy_link` fill `extracted_data`: the former under the selector, the latter
+under `key`. A step before `open` fails with "browser is not open".
 
 ## Run as an MCP server
 
 ```sh
-uv run botcan-mcp                          # stdio MCP server: play_recipe + play_steps
+uv run python server.py
 ```
 
-Register with your AI app (point `--directory` at your checkout):
+Two tools: `play_recipe` (path to a recipe file) and `play_steps` (inline YAML). Both return:
+
+```json
+{"extracted_data": {"#product-name": "...", "internal_link": "https://..."}, "error": null}
+```
+
+Bad YAML, unknown actions, and failed steps return a string in `error` (not an exception),
+and `extracted_data` keeps everything collected before the failure.
+
+Register with your AI app, pointing `--directory` at this checkout:
 
 ```sh
 # OpenCode (global for every project)
-opencode mcp add botcan --global -- uv --directory <path-to-botcan> run botcan-mcp
+opencode mcp add botcan --global -- uv --directory <path-to-botcan> run python server.py
+```
+
+```jsonc
+// OpenCode — ~/.config/opencode/opencode.jsonc
+"mcp": {
+  "servers": {
+    "botcan": {
+      "type": "local",
+      "command": ["uv", "--directory", "<path-to-botcan>", "run", "python", "server.py"]
+    }
+  }
+}
 ```
 
 ```jsonc
 // Claude Desktop — claude_desktop_config.json
-{ "mcpServers": { "botcan": { "command": "uv", "args": ["--directory", "<path-to-botcan>", "run", "botcan-mcp"] } } }
+{ "mcpServers": { "botcan": { "command": "uv", "args": ["--directory", "<path-to-botcan>", "run", "python", "server.py"] } } }
 ```
 
 ```sh
 # Claude Code
-claude mcp add botcan -- uv --directory <path-to-botcan> run botcan-mcp
+claude mcp add botcan -- uv --directory <path-to-botcan> run python server.py
 ```
 
 ```toml
 # Codex — ~/.codex/config.toml
 [mcp_servers.botcan]
 command = "uv"
-args = ["--directory", "<path-to-botcan>", "run", "botcan-mcp"]
+args = ["--directory", "<path-to-botcan>", "run", "python", "server.py"]
 ```
 
 ## Skill (teaches models the recipe language)
 
-`~/.claude/skills/botcan/SKILL.md` — read natively by Claude Code, auto-discovered by
-OpenCode through its `~/.claude/skills` compatibility scan. One file, both apps.
-
-This repo ships the same file at `skills/botcan/SKILL.md` — install it by copying
-(or symlinking) that directory into `~/.claude/skills/botcan/`.
-
-For claude.ai: skills are uploaded as a ZIP in Settings → Skills. Build it with:
+`skills/botcan/SKILL.md` — copy (or symlink) that directory into `~/.claude/skills/botcan/`.
+Claude Code reads it natively; OpenCode discovers it through its `~/.claude/skills`
+compatibility scan. For claude.ai, upload it as a ZIP in Settings → Skills:
 
 ```sh
 zip -r botcan-skill.zip skills/botcan
 ```
 
-The skill only *writes* recipes there — running them needs the MCP server locally
-(see the setup steps above), since a cloud sandbox can't drive your browser.
+## Layout
+
+```
+main.py      CLI runner
+scraper.py   recipe engine: actions, extraction, errors
+server.py    MCP server: play_recipe / play_steps
+demo/        demo page + recipe
+skills/      model-facing skill for the recipe language
+```

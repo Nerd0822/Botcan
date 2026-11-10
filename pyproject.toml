@@ -1,28 +1,14 @@
 [project]
 name = "botcan"
-version = "0.1.0"
+version = "0.2.0"
 description = "Run YAML browser-automation recipes with Playwright: open pages, click, fill, extract, screenshot, download."
 readme = "README.md"
-authors = [
-    { name = "Nerd0822", email = "Nerd0822@users.noreply.github.com" }
-]
 license = "MIT"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 keywords = ["browser-automation", "web-scraping", "playwright", "mcp", "yaml"]
 dependencies = [
     "mcp>=1,<2",
-    "playwright>=1.64.0",
+    "orjson>=3.13.0",
+    "playwright>=1.65.0",
     "pyyaml>=6.0.3",
 ]
-
-[project.urls]
-Homepage = "https://github.com/Nerd0822/Botcan"
-Repository = "https://github.com/Nerd0822/Botcan"
-
-[project.scripts]
-botcan = "botcan.run:main"
-botcan-mcp = "botcan.server:main"
-
-[build-system]
-requires = ["uv_build>=0.13.1,<0.14.0"]
-build-backend = "uv_build"
